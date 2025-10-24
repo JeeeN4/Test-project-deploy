@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:project_capstone_1/widgets/navbar_widgets.dart';
+import 'package:project_capstone_1/widgets/navbar_widget.dart';
 
 class ProductListScreen extends StatefulWidget {
   const ProductListScreen({super.key});

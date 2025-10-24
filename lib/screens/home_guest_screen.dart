@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:project_capstone_1/screen/login_screen.dart';
+import 'package:project_capstone_1/screens/login_screen.dart';
+import 'package:project_capstone_1/screens/scan_screen.dart';
 
-import 'package:project_capstone_1/widgets/navbar_widgets.dart';
+import 'package:project_capstone_1/widgets/navbar_widget.dart';
 
 class HomeGuestScreen extends StatelessWidget {
   const HomeGuestScreen({super.key});
@@ -132,7 +133,6 @@ class HomeGuestScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 10),
-
                     
                     Image.asset(
                       "images/illustrations/Zero-Tasks-3-Streamline-Milano.png",
@@ -178,7 +178,12 @@ class HomeGuestScreen extends StatelessWidget {
                           const SizedBox(height: 10),
                           ElevatedButton(
                             onPressed: () {
-                              // TODO: navigasi ke halaman Scan
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const ScanScreen(),
+                                ),
+                              );
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF6B7B48),

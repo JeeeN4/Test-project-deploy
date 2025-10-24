@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:project_capstone_1/screen/login_screen.dart';
+import 'package:project_capstone_1/screens/login_screen.dart';
 
 class LoginMessage extends StatelessWidget {
   const LoginMessage({super.key});
@@ -14,7 +14,7 @@ class LoginMessage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // 🖼️ Ilustrasi
+             
               Image.asset(
                 'images/illustrations/Approval-1-Streamline-Milano.png',
                 height: 225,
@@ -34,7 +34,6 @@ class LoginMessage extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              // 🔘 Tombol Login
               SizedBox(
                 width: 140,
                 height: 45,

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:fl_chart/fl_chart.dart';
 
-import 'package:project_capstone_1/widgets/navbar_widgets.dart';
+import 'package:project_capstone_1/widgets/navbar_widget.dart';
 
 class HomeUserScreen extends StatefulWidget {
   const HomeUserScreen({super.key});

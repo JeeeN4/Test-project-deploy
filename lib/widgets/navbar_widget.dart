@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:project_capstone_1/screen/profile_screen.dart';
-import 'package:project_capstone_1/screen/home_user_screen.dart';
-import 'package:project_capstone_1/screen/home_guest_screen.dart';
-import 'package:project_capstone_1/screen/list_product_screen.dart';
-import 'package:project_capstone_1/screen/scan_screen.dart';
-import 'package:project_capstone_1/screen/fun_facts_screen.dart';
-import 'package:project_capstone_1/provider/auth_provider.dart';
-import 'package:project_capstone_1/widgets/login_message_widgets.dart';
+import 'package:project_capstone_1/screens/profile_screen.dart';
+import 'package:project_capstone_1/screens/home_user_screen.dart';
+import 'package:project_capstone_1/screens/home_guest_screen.dart';
+import 'package:project_capstone_1/screens/list_product_screen.dart';
+import 'package:project_capstone_1/screens/scan_screen.dart';
+import 'package:project_capstone_1/screens/fun_facts_screen.dart';
+import 'package:project_capstone_1/providers/user_auth_provider.dart';
+import 'package:project_capstone_1/widgets/login_message_widget.dart';
 
 class CustomNavBar extends StatefulWidget {
   final int selectedIndex;
@@ -29,7 +29,7 @@ class _CustomNavBarState extends State<CustomNavBar> {
   }
 
   void _onItemTapped(BuildContext context, int index) {
-    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final auth = Provider.of<UserAuthProvider>(context, listen: false);
     bool loggedIn = auth.isLoggedIn;
 
     Widget page;
@@ -44,7 +44,7 @@ class _CustomNavBarState extends State<CustomNavBar> {
         usePush = !loggedIn; 
         break;
       case 2:
-        page = const ScanScreen();
+        page = const ScanScreen(); usePush = true;
         break;
       case 3:
         page = loggedIn ? const FunFactsScreen() : const LoginMessage();
@@ -77,7 +77,7 @@ class _CustomNavBarState extends State<CustomNavBar> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 55,
+      height: 65,
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.only(
@@ -101,7 +101,7 @@ class _CustomNavBarState extends State<CustomNavBar> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _buildNavItem("images/icons/home.png", "Home", 0),
-                _buildNavItem("images/icons/list.png", "List", 1),
+                _buildNavItem("images/icons/list.png", "Product List", 1),
                 const SizedBox(width: 60), // ruang tombol tengah
                 _buildNavItem("images/icons/fun-facts.png", "Fun Facts", 3),
                 _buildNavItem("images/icons/profile.png", "Profile", 4),
@@ -113,7 +113,7 @@ class _CustomNavBarState extends State<CustomNavBar> {
           Align(
             alignment: Alignment.center,
             child: Padding(
-              padding: const EdgeInsets.only(top: 25), // geser sedikit ke bawah
+              padding: const EdgeInsets.only(top: 25),
               child: const Text(
                 'Scan',
                 style: TextStyle(
