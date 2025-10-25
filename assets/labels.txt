@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 garam
 gula
 kalori
@@ -6,13 +5,4 @@ karbo
 lemak
 nutrition-fact
 protein
-=======
-garam
-gula
-kalori
-karbo
-lemak
-nutrition-fact
-protein
->>>>>>> 0918f0c041af73e3a0d1277371360a78a36de246
 takaran
