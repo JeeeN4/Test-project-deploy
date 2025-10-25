@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:project_capstone_1/screens/scan_result_screen.dart';
 import 'package:project_capstone_1/services/camera_service.dart';
+import 'package:project_capstone_1/services/tflite_service.dart';
 
 class ScanScreen extends StatefulWidget {
   const ScanScreen({super.key});
@@ -14,6 +15,7 @@ class ScanScreen extends StatefulWidget {
 
 class _ScanScreenState extends State<ScanScreen> {
   File? _selectedImage;
+  final _tfliteService = TFLiteService();
 
   Future<void> _pickFromGallery() async {
     final picker = ImagePicker();
@@ -42,12 +44,68 @@ class _ScanScreenState extends State<ScanScreen> {
     }
   }
 
+  Future<void> _analyzeImage() async {
+    if (_selectedImage == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Pilih gambar terlebih dahulu")),
+      );
+      return;
+    }
+
+    // Tampilkan loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    // Muat model YOLO & OCR
+    await _tfliteService.loadModel();
+    final ocrResult = await _tfliteService.analyzeImage(_selectedImage!.path);
+    
+
+    // Tutup loading
+    if (mounted) Navigator.pop(context);
+
+    // Konversi hasil OCR menjadi data nutrisi
+    final inferenceResult = _parseOCRResultToPred(ocrResult);
+
+    // Navigasi ke hasil scan
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ScanResultScreen(
+          imagePath: _selectedImage!.path,
+          inferenceResult: inferenceResult,
+        ),
+      ),
+    );
+  }
+
+  Map<String, dynamic> _parseOCRResultToPred(Map<String, String> ocrResult) {
+    double parseDouble(String? value) {
+      if (value == null) return 0.0;
+      return double.tryParse(value.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0.0;
+    }
+
+    return {
+      "nutriGrade": "B", // placeholder, bisa dihitung otomatis nanti
+      "gula": parseDouble(ocrResult["gula"]),
+      "garam": parseDouble(ocrResult["garam"]),
+      "lemak": parseDouble(ocrResult["lemak"]),
+      "protein": parseDouble(ocrResult["protein"]),
+      "kalori": parseDouble(ocrResult["kalori"]),
+      "karbo": parseDouble(ocrResult["karbo"]),
+      "serat": parseDouble(ocrResult["serat"]),
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFBE19D),
       body: SafeArea(
-        child: SingleChildScrollView( 
+        child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
           child: Center(
             child: Padding(
@@ -114,32 +172,23 @@ class _ScanScreenState extends State<ScanScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _buildRoundedButton("NutriFact", onTap: () {
-                        if (_selectedImage == null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("Pilih gambar terlebih dahulu")),
-                          );
-                          return;
-                        }
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ScanResultScreen(imagePath: _selectedImage!.path),
-                          ),
-                        );
-                      }),
+                      _buildRoundedButton("NutriFact", onTap: _analyzeImage),
                       const SizedBox(width: 12),
                       _buildRoundedButton("Barcode", onTap: () {
-                                                if (_selectedImage == null) {
+                        // tombol barcode belum diaktifkan
+                        if (_selectedImage == null) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("Pilih gambar terlebih dahulu")),
+                            const SnackBar(
+                                content: Text("Pilih gambar terlebih dahulu")),
                           );
                           return;
                         }
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => ScanResultScreen(imagePath: _selectedImage!.path),
+                            builder: (_) => ScanResultScreen(
+                              imagePath: _selectedImage!.path,
+                            ),
                           ),
                         );
                       }),

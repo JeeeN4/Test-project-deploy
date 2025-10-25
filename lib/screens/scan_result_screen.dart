@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -6,31 +7,29 @@ import '../providers/product_provider.dart';
 
 class ScanResultScreen extends StatelessWidget {
   final String imagePath;
-  final Map<String, dynamic>? inferenceResult; // tambahkan ini
+  final Map<String, dynamic>? inferenceResult; // hasil dari OCR/YOLO
 
   const ScanResultScreen({
     super.key,
     required this.imagePath,
-    this.inferenceResult, // tambahkan ini juga
+    this.inferenceResult,
   });
 
-
-  
   Color _getBackgroundColor(String grade) {
     switch (grade.toUpperCase()) {
       case 'A':
         return const Color.fromARGB(255, 44, 87, 45);
       case 'B':
-        return const Color.fromARGB(255, 147, 202, 142); 
+        return const Color.fromARGB(255, 147, 202, 142);
       case 'C':
-        return Colors.orange.shade200; 
+        return Colors.orange.shade200;
       case 'D':
-        return const Color.fromARGB(255, 160, 71, 71); 
+        return const Color.fromARGB(255, 160, 71, 71);
+      default:
+        return Colors.grey;
     }
-    throw ArgumentError('Invalid grade value: $grade');
   }
 
-  
   String _getNutriGradeImage(String grade) {
     switch (grade.toUpperCase()) {
       case 'A':
@@ -41,53 +40,45 @@ class ScanResultScreen extends StatelessWidget {
         return 'images/nutri_grade_labels/C-nutri-grade.png';
       case 'D':
         return 'images/nutri_grade_labels/D-nutri-grade.png';
+      default:
+        return 'images/nutri_grade_labels/B-nutri-grade.png';
     }
-    throw ArgumentError('Invalid grade value: $grade');
   }
 
   @override
   Widget build(BuildContext context) {
-    final pred = inferenceResult ?? {
-      "nutriGrade": "B",
-      "gula": 20.0,
-      "garam": 10.0,
-      "lemak": 5.0,
-      "protein": 14.0,
-      "kalori": 270.0,
-      "karbo": 0.0,
-      "serat": 0.0,
-    };
+    // Mapping hasil OCR ke nilai gizi, parsing aman ke double
+    final pred = inferenceResult ?? {};
+    double parseOrZero(dynamic val) {
+      if (val == null) return 0.0;
+      if (val is num) return val.toDouble();
+      return double.tryParse(val.toString()) ?? 0.0;
+    }
 
-    final dummyProduct = Product(
-      uid: FirebaseAuth.instance.currentUser!.uid,
-      gula: pred["gula"],
-      garam: pred["garam"],
-      lemak: pred["lemak"],
-      protein: pred["protein"],
-      serat: pred["serat"],
-      kalori: pred["kalori"],
-      karbo: pred["karbo"],
-      nutriGrade: pred["nutriGrade"],
+    final product = Product(
+      uid: FirebaseAuth.instance.currentUser?.uid ?? "guest",
+      gula: parseOrZero(pred["gula"]),
+      garam: parseOrZero(pred["garam"]),
+      lemak: parseOrZero(pred["lemak"]),
+      protein: parseOrZero(pred["protein"]),
+      serat: parseOrZero(pred["serat"]),
+      kalori: parseOrZero(pred["kalori"]),
+      karbo: parseOrZero(pred["karbo"]),
+      nutriGrade: pred["nutriGrade"] ?? "B",
       imageUrl: imagePath,
       scanDate: DateTime.now(),
-  );
-    
+    );
 
     final productProvider = Provider.of<ProductProvider>(context, listen: false);
-
-  
-    final bgColor = _getBackgroundColor(dummyProduct.nutriGrade);
-    final nutriImage = _getNutriGradeImage(dummyProduct.nutriGrade);
+    final bgColor = _getBackgroundColor(product.nutriGrade);
+    final nutriImage = _getNutriGradeImage(product.nutriGrade);
 
     return Scaffold(
       backgroundColor: bgColor,
       appBar: AppBar(
         title: const Text(
           'HASIL SCAN',
-          style: TextStyle(
-            color: Colors.white,
-            letterSpacing: 1.2,
-          ),
+          style: TextStyle(color: Colors.white, letterSpacing: 1.2),
         ),
         centerTitle: true,
         backgroundColor: Colors.black87,
@@ -115,22 +106,29 @@ class ScanResultScreen extends StatelessWidget {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: Image.asset(
-                      dummyProduct.imageUrl,
-                      height: 150,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
+                    child: File(imagePath).existsSync()
+                        ? Image.file(
+                            File(imagePath),
+                            height: 150,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          )
+                        : Image.asset(
+                            imagePath,
+                            height: 150,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
                   ),
                   const SizedBox(height: 16),
                   Image.asset(
-                    nutriImage, 
+                    nutriImage,
                     height: 40,
-                    alignment: AlignmentGeometry.centerLeft,
+                    alignment: Alignment.centerLeft,
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    dummyProduct.scanDate.toString(),
+                    product.scanDate.toString(),
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -143,13 +141,13 @@ class ScanResultScreen extends StatelessWidget {
                     style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
-                  _buildNutritionRow("Gula", dummyProduct.gula),
-                  _buildNutritionRow("Garam", dummyProduct.garam),
-                  _buildNutritionRow("Lemak jenuh", dummyProduct.lemak),
-                  _buildNutritionRow("Protein", dummyProduct.protein),
-                  _buildNutritionRow("Kalori", dummyProduct.kalori),
-                  _buildNutritionRow("Karbo", dummyProduct.karbo),
-                  _buildNutritionRow("Serat", dummyProduct.serat),
+                  _buildNutritionRow("Gula", product.gula),
+                  _buildNutritionRow("Garam", product.garam),
+                  _buildNutritionRow("Lemak jenuh", product.lemak),
+                  _buildNutritionRow("Protein", product.protein),
+                  _buildNutritionRow("Kalori", product.kalori),
+                  _buildNutritionRow("Karbo", product.karbo),
+                  _buildNutritionRow("Serat", product.serat),
                   const SizedBox(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -167,7 +165,7 @@ class ScanResultScreen extends StatelessWidget {
                       ),
                       ElevatedButton(
                         onPressed: () async {
-                          await productProvider.addProduct(dummyProduct);
+                          await productProvider.addProduct(product);
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text("Produk berhasil ditambahkan!"),
@@ -203,17 +201,11 @@ class ScanResultScreen extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 15,
-              color: Colors.black87,
-            ),
+            style: const TextStyle(fontSize: 15, color: Colors.black87),
           ),
           Text(
             value.toStringAsFixed(0),
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-            ),
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
           ),
         ],
       ),
