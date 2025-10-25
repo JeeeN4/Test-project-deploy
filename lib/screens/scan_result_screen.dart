@@ -6,8 +6,14 @@ import '../providers/product_provider.dart';
 
 class ScanResultScreen extends StatelessWidget {
   final String imagePath;
+  final Map<String, dynamic>? inferenceResult; // tambahkan ini
 
-  const ScanResultScreen({super.key, required this.imagePath});
+  const ScanResultScreen({
+    super.key,
+    required this.imagePath,
+    this.inferenceResult, // tambahkan ini juga
+  });
+
 
   
   Color _getBackgroundColor(String grade) {
@@ -41,24 +47,35 @@ class ScanResultScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Dummy data hasil scan
+    final pred = inferenceResult ?? {
+      "nutriGrade": "B",
+      "gula": 20.0,
+      "garam": 10.0,
+      "lemak": 5.0,
+      "protein": 14.0,
+      "kalori": 270.0,
+      "karbo": 0.0,
+      "serat": 0.0,
+    };
+
     final dummyProduct = Product(
       uid: FirebaseAuth.instance.currentUser!.uid,
-      gula: 20,
-      garam: 10,
-      lemak: 5,
-      protein: 14,
-      serat: 0,
-      kalori: 270,
-      karbo: 0,
-      nutriGrade: "B",
+      gula: pred["gula"],
+      garam: pred["garam"],
+      lemak: pred["lemak"],
+      protein: pred["protein"],
+      serat: pred["serat"],
+      kalori: pred["kalori"],
+      karbo: pred["karbo"],
+      nutriGrade: pred["nutriGrade"],
       imageUrl: imagePath,
       scanDate: DateTime.now(),
-    );
+  );
+    
 
     final productProvider = Provider.of<ProductProvider>(context, listen: false);
 
-   
+  
     final bgColor = _getBackgroundColor(dummyProduct.nutriGrade);
     final nutriImage = _getNutriGradeImage(dummyProduct.nutriGrade);
 
